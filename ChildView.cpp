@@ -22,8 +22,9 @@ FILEPATH_LABEL{ _T("res/train-labels.idx1-ubyte") };
 CChildView::CChildView()
 	:m_imgSet{ FILEPATH_IMAGE, FILEPATH_LABEL }
 	, m_pTh{ NULL }
-	, m_iSample{ 0 }
 {
+	::srand(10);
+
 	int32_t const bmi_size{ sizeof BITMAPINFOHEADER + sizeof RGBQUAD * 256 };
 	m_bmpInfo = std::make_unique<std::byte[]>(bmi_size);
 	auto& bmi{ *reinterpret_cast<BITMAPINFO*>(m_bmpInfo.get()) };
@@ -48,8 +49,9 @@ CChildView::~CChildView()
 
 ImageSet::Data CChildView::GetNextSample()
 {
-	ASSERT(m_iSample < (int)m_imgSet.GetCount());
-	return m_imgSet.GetSample(m_iSample++);
+	auto const iSample{ m_ScanResults.PickNextSample() };
+	ASSERT(iSample < (int)m_imgSet.GetCount());
+	return m_imgSet.GetSample(iSample);
 }
 
 
@@ -84,7 +86,7 @@ void CChildView::OnPaint()
 
 	CRect rect;
 	GetClientRect(rect);
-	dc.DrawText(m_strInfo, rect, DT_LEFT);
+	dc.DrawText(m_ScanResults.GetInfo(), rect, DT_LEFT);
 	//DrawGrayscaleImage(dc, 10, 10, 28, 28, *m_imgSet.GetPictures().begin());
 }
 
@@ -112,17 +114,14 @@ void CChildView::OnLearnNextSample()
 {
 	if (!m_pTh)
 	{
-		m_iSample = 0;
-		m_dbGuessedMax = .0;
-		m_iCorrect = 0ull;
-		::srand(10);
+		m_ScanResults = { m_imgSet.GetCount() };
 
 		m_pTh = (CLearningThread*)::AfxBeginThread(RUNTIME_CLASS(CLearningThread), 0, 0, CREATE_SUSPENDED);
 		m_pTh->m_pView = this;
 		m_pTh->m_Net.init({
 			28 * 28,
 			28 * 28,
-			//28 * 28 /2,
+			//20,
 			//28 * 28 / 4,
 			//28 * 28 / 8,
 			10 });
@@ -149,30 +148,11 @@ void CChildView::OnDestroy()
 
 LRESULT CChildView::OnSampleLearned(WPARAM, LPARAM)
 {
-	if (m_pTh->m_Guessed == m_pTh->m_Real)
-		++m_iCorrect;
-
-	if (m_iSample > 99)
-		m_dbGuessedMax = max(m_dbGuessedMax, m_iCorrect * 100. / m_iSample);
-
-	m_strInfo.Format(_T("Learned %d / %I64u, correct = %I64u"
-		"\nError = %.6f, %.2f%%, max: %.2f%%"
-		"\nReal = %d, Guessed = %d"
-		"\nout win = %.5f"),
-		m_iSample,
-		m_imgSet.GetCount(),
-		m_iCorrect,
-		m_pTh->m_Net.error(),
-		m_iCorrect * 100. / m_iSample,
-		m_dbGuessedMax,
-		m_pTh->m_Real,
-		m_pTh->m_Guessed,
-		m_pTh->m_outWin
-	);
+	m_ScanResults.Add(m_pTh->m_Guessed, m_pTh->m_Real, m_pTh->m_Net.error(), m_pTh->m_outWin);
 
 	Invalidate();
 
-	if (m_iSample < (int)m_imgSet.GetCount())
+	if (m_ScanResults.GetCurrentSample() < (int)m_imgSet.GetCount())
 		m_pTh->PostThreadMessage(WM_LEARN_SAMPLE, 0, 0);
 
 	return 0;

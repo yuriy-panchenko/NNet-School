@@ -5,7 +5,7 @@ namespace nnet
 	using cvd = std::vector<double> const;
 	constexpr double
 		cooficient_inertial{ .01 },
-		cooficient_learning{ .01 };
+		cooficient_learning{ .001 };
 
 	inline double derr(double out)
 	{
@@ -24,7 +24,7 @@ namespace nnet
 	public:
 		acson() :m_W{ rand() }, m_dW{ .0 } {}
 		double think(double val)const { return val * m_W; }
-		static double rand() { return  2.*(2. * ::rand() / RAND_MAX - 1.); }
+		static double rand() { return  2. * ::rand() / RAND_MAX - 1.; }
 		void backpropagate(double err)
 		{
 			m_dW *= cooficient_inertial;

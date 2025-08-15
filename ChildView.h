@@ -5,6 +5,7 @@
 
 #pragma once
 #include "CLearningThread.h"
+#include "ScanResults.h"
 
 // CChildView window
 
@@ -46,9 +47,7 @@ private:
 	ImageSet m_imgSet;
 	std::unique_ptr<std::byte[]> m_bmpInfo;
 	CLearningThread* m_pTh;
-	int m_iSample;
-	size_t m_iCorrect;
-	CString m_strInfo;
-	double m_dbGuessedMax;
+	
+	ScanResults m_ScanResults;
 };
 
