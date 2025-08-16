@@ -19,7 +19,7 @@ namespace nnet
 			ret += a.think(*iter++);
 
 		//ret /= m_Acsons.size()+1;
-		ret /= 2. * sqrt(double(m_Acsons.size() + 1));
+		ret /= sqrt(double(m_Acsons.size() + 1));
 
 		return act(ret);
 	}

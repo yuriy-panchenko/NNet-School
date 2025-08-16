@@ -11,6 +11,8 @@
 #define new DEBUG_NEW
 #endif
 
+#define SCALE_WIDTH		100
+
 constexpr auto
 //FILEPATH_IMAGE{_T("res/t10k-images.idx3-ubyte")},
 FILEPATH_IMAGE{ _T("res/train-images.idx3-ubyte") },
@@ -41,6 +43,12 @@ CChildView::CChildView()
 	// Fill grayscale palette
 	for (int i = 0; i < 256; i++)
 		bmi.bmiColors[i].rgbRed = bmi.bmiColors[i].rgbGreen = bmi.bmiColors[i].rgbBlue = i;
+
+	LOGFONT lf{};
+	lf.lfHeight = 18;
+	lf.lfWeight = FW_NORMAL;
+	wcscpy_s(lf.lfFaceName, _T("Terminal"));
+	m_fontInfo.CreateFontIndirect(&lf);
 }
 
 CChildView::~CChildView()
@@ -61,6 +69,7 @@ BEGIN_MESSAGE_MAP(CChildView, CWnd)
 	ON_UPDATE_COMMAND_UI(ID_LEARN_NEXT_SAMPLE, &CChildView::OnUpdateLearnNextSample)
 	ON_WM_DESTROY()
 	ON_MESSAGE(WM_SAMPLE_LEARNED, OnSampleLearned)
+	ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 
@@ -84,10 +93,42 @@ void CChildView::OnPaint()
 {
 	CPaintDC dc{ this }; // device context for painting
 
-	CRect rect;
-	GetClientRect(rect);
-	dc.DrawText(m_ScanResults.GetInfo(), rect, DT_LEFT);
+	CRect canvas;
+	GetClientRect(canvas);
+
+	CBitmap bmp;
+	bmp.CreateCompatibleBitmap(&dc, canvas.Width(), canvas.Height());
+	CDC memDC;
+	memDC.CreateCompatibleDC(&dc);
+	int const iSave{ memDC.SaveDC() };
+	memDC.SelectObject(bmp);
+
+	auto rect{ canvas };
+	rect.bottom -= 300;
+	rect.right -= SCALE_WIDTH;
+	rect.DeflateRect(0, 20, 0, 20);
+	m_ScanResults.DrawGuessed(memDC, rect);
+	rect.left = rect.right;
+	rect.right = canvas.right;
+	DrawScale(memDC, rect, m_ScanResults.GetGuessedMinMax());
+
+
+	rect = canvas;
+	rect.top = canvas.bottom - 300;
+	rect.DeflateRect(0, 20, SCALE_WIDTH, 20);
+	m_ScanResults.DrawErrors(memDC, rect);
+
+
+	rect = canvas;
+	rect.DeflateRect(20, 20, 0, 20);
+	memDC.SetTextColor(RGB(20, 220, 20));
+	memDC.SetBkMode(TRANSPARENT);
+	memDC.SelectObject(m_fontInfo);
+	memDC.DrawText(m_ScanResults.GetInfo(), rect, DT_LEFT);
 	//DrawGrayscaleImage(dc, 10, 10, 28, 28, *m_imgSet.GetPictures().begin());
+
+	dc.BitBlt(0, 0, canvas.Width(), canvas.Height(), &memDC, 0, 0, SRCCOPY);
+	memDC.RestoreDC(iSave);
 }
 
 void CChildView::DrawGrayscaleImage(CDC& dc, int x, int y, int drawWidth, int drawHeight, const unsigned char* pixels)
@@ -110,6 +151,10 @@ void CChildView::DrawGrayscaleImage(CDC& dc, int x, int y, int drawWidth, int dr
 	);
 }
 
+void CChildView::DrawScale(CDC&, CRect const&, MinMax)
+{
+}
+
 void CChildView::OnLearnNextSample()
 {
 	if (!m_pTh)
@@ -121,7 +166,10 @@ void CChildView::OnLearnNextSample()
 		m_pTh->m_Net.init({
 			28 * 28,
 			28 * 28,
+			28 * 28,
+			//28 * 28,
 			//20,
+			//28 * 28 / 2,
 			//28 * 28 / 4,
 			//28 * 28 / 8,
 			10 });
@@ -156,4 +204,12 @@ LRESULT CChildView::OnSampleLearned(WPARAM, LPARAM)
 		m_pTh->PostThreadMessage(WM_LEARN_SAMPLE, 0, 0);
 
 	return 0;
+}
+
+BOOL CChildView::OnEraseBkgnd(CDC* pDC)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	//return CWnd::OnEraseBkgnd(pDC);
+	return TRUE;
 }

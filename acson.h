@@ -4,7 +4,7 @@ namespace nnet
 	using vd = std::vector<double>;
 	using cvd = std::vector<double> const;
 	constexpr double
-		cooficient_inertial{ .01 },
+		cooficient_inertial{ .1 },
 		cooficient_learning{ .001 };
 
 	inline double derr(double out)

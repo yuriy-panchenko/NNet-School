@@ -193,6 +193,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="layer.h" />
     <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="MinMax.h" />
     <ClInclude Include="neuron.h" />
     <ClInclude Include="NNet School.h" />
     <ClInclude Include="nnet.h" />

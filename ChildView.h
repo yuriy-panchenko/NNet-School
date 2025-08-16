@@ -38,10 +38,12 @@ protected:
 	afx_msg void OnUpdateLearnNextSample(CCmdUI* pCmdUI);
 	afx_msg void OnDestroy();
 	afx_msg LRESULT OnSampleLearned(WPARAM,LPARAM);
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	DECLARE_MESSAGE_MAP()
 
 private:
 	void DrawGrayscaleImage(CDC& dc, int x, int y, int drawWidth, int drawHeight, const unsigned char* pixels);
+	void DrawScale(CDC&, CRect const&, MinMax);
 
 private:
 	ImageSet m_imgSet;
@@ -49,5 +51,6 @@ private:
 	CLearningThread* m_pTh;
 	
 	ScanResults m_ScanResults;
+	CFont m_fontInfo;
 };
 

@@ -11,6 +11,7 @@
 #include <memory>
 #include "framework.h"
 #include "D:\projects\GPUNet\nnetshare\nnetshare.h"
+#include "MinMax.h"
 
 inline double sq(double val) { return val * val; }
 
