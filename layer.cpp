@@ -51,7 +51,16 @@ namespace nnet
 		for (auto& n : m_Cells)
 			ret += n.weighted_error(index);
 
-		return tanh(ret);// m_Cells.size();
+		//return ret;
+		//return ret / sqrt(m_Cells.size());
+		return tanh(ret);
+		/*ret = tanh(ret);
+		bool has_minus{ ret < .0 };
+		ret = sqrt(abs(ret));
+		return has_minus ? -ret : ret;*/
+		//return sqrt(abs(ret))*(ret>.0?1.:-1.) ;
+		//return abs(ret) > .1 ? abs(ret) / ret : .0;
+		//return abs(ret) / ret;
 	}
 
 	void layer::adjust()

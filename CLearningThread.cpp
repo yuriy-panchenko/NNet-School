@@ -49,9 +49,12 @@ void CLearningThread::Think(ImageFile::PICTURE const& pic)
 
 			for (auto& px : ret)
 			{
-				px = *iter++ / 50.;
-				if (px == .0)
+				if (*iter)
+					px = *iter / 255.;
+				else
 					px = -1.;
+
+				++iter;
 			}
 
 			return ret;
@@ -65,7 +68,7 @@ void CLearningThread::Think(ImageFile::PICTURE const& pic)
 
 void CLearningThread::Learn(BYTE val)
 {
-	constexpr auto rx{ .7 };
+	constexpr auto rx{ .75 };
 	std::vector real(10, -rx);
 	real[val] = rx;
 	m_Net.learn(real);

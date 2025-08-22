@@ -125,7 +125,7 @@ void CChildView::OnPaint()
 	memDC.SetBkMode(TRANSPARENT);
 	memDC.SelectObject(m_fontInfo);
 	memDC.DrawText(m_ScanResults.GetInfo(), rect, DT_LEFT);
-	//DrawGrayscaleImage(dc, 10, 10, 28, 28, *m_imgSet.GetPictures().begin());
+	//DrawGrayscaleImage(memDC, 10, 10, 28, 28, *(m_imgSet.GetPictures().begin()+1));
 
 	dc.BitBlt(0, 0, canvas.Width(), canvas.Height(), &memDC, 0, 0, SRCCOPY);
 	memDC.RestoreDC(iSave);
@@ -151,8 +151,30 @@ void CChildView::DrawGrayscaleImage(CDC& dc, int x, int y, int drawWidth, int dr
 	);
 }
 
-void CChildView::DrawScale(CDC&, CRect const&, MinMax)
+void CChildView::DrawScale(CDC& dc, CRect const& canvas, MinMax mm)
 {
+	if (canvas.IsRectEmpty())
+		return;
+
+	if (mm.IsFlat())
+		mm = { -1, 1 };
+
+	int iPow{ 0 };
+
+	while (true)
+	{
+		auto PpP{ canvas.Height() / mm.Spread() };	//	pixels per point
+		PpP *= pow(10., iPow);
+		if (PpP > 50.)
+		{
+			--iPow;
+		}
+		else if (PpP < 5.)
+		{
+			++iPow;
+		}
+		else break;
+	}
 }
 
 void CChildView::OnLearnNextSample()
@@ -167,11 +189,14 @@ void CChildView::OnLearnNextSample()
 			28 * 28,
 			28 * 28,
 			28 * 28,
-			//28 * 28,
-			//20,
-			//28 * 28 / 2,
-			//28 * 28 / 4,
-			//28 * 28 / 8,
+			/*28 * 28,
+			28 * 28,
+			28 * 28,
+			28 * 28,
+			28 * 28,
+			28 * 28,
+			28 * 28,
+			28 * 28,*/
 			10 });
 		m_pTh->ResumeThread();
 	}

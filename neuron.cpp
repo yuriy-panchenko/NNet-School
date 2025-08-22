@@ -18,6 +18,7 @@ namespace nnet
 		for (auto& a : m_Acsons)
 			ret += a.think(*iter++);
 
+		//ret = log10(ret);
 		//ret /= m_Acsons.size()+1;
 		ret /= sqrt(double(m_Acsons.size() + 1));
 
